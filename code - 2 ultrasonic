@@ -1,0 +1,151 @@
+#include <Servo.h> 
+#include <Wire.h> 
+#include <Adafruit_GFX.h> 
+#include <Adafruit_SSD1306.h> 
+#include <Ultrasonic.h> 
+
+// OLED display 
+Adafruit_SSD1306 display(128, 64); 
+
+// Servo motors 
+Servo servo1, servo2; 
+
+// Ultrasonic sensor 
+Ultrasonic ultrasonic(12, 11); 
+
+// Coin acceptor 
+const int coinPin = 2; 
+int coinVal = 0; 
+
+// Push buttons 
+const int button1Pin = 3; 
+const int button2Pin = 4; 
+int button1State = 0; 
+int button2State = 0; 
+
+// Product details 
+String product1 = "Product 1"; 
+int product1Price = 5; 
+String product2 = "Product 2"; 
+int product2Price = 5; 
+
+void setup() { 
+  // Initialize OLED display 
+  display.begin(SSD1306_SWITCHCAPVCC); 
+  display.clearDisplay(); 
+  display.display(); 
+
+  // Initialize servo motors 
+  servo1.attach(9); 
+  servo2.attach(10); 
+
+  // Initialize coin acceptor 
+  pinMode(coinPin, INPUT); 
+
+  // Initialize push buttons 
+  pinMode(button1Pin, INPUT); 
+  pinMode(button2Pin, INPUT); 
+
+  // Introduction slide 
+  display.setTextSize(1); 
+  display.setTextColor(WHITE); 
+  display.setCursor(0, 0); 
+  display.println("Welcome to our"); 
+  display.println("Vending Machine!"); 
+  display.display(); 
+  delay(2000); 
+  display.clearDisplay(); 
+} 
+
+void loop() { 
+  // Check coin value 
+  coinVal = digitalRead(coinPin); 
+  if (coinVal == HIGH) { 
+    // Check for available stock using ultrasonic sensor 
+    int distance = ultrasonic.distanceRead(); 
+    if (distance > 0 && distance < 30) { 
+      // Display product details 
+      display.setTextSize(1); 
+      display.setTextColor(WHITE); 
+      display.setCursor(0, 0); 
+      display.println("Please select a product:"); 
+      display.println("1. " + product1 + " - Rs. " + product1Price); 
+      display.println("2. " + product2 + " - Rs. " + product2Price); 
+      display.display(); 
+
+      // Wait for button press 
+      button1State = digitalRead(button1Pin); 
+      button2State = digitalRead(button2Pin); 
+      while (button1State == HIGH && button2State == HIGH) { 
+        button1State = digitalRead(button1Pin); 
+        button2State = digitalRead(button2Pin); 
+      } 
+
+      // Determine which product was selected 
+      if (button1State == LOW) { 
+        // Dispense product 1 
+        servo1.write(0);
+        //update the stock
+        distance--;
+        display.clearDisplay();
+        display.setTextSize(1); 
+        display.setTextColor(WHITE); 
+        display.setCursor(0, 0); 
+        display.println("Dispensing " + product1); 
+        display.display(); 
+        delay(2000); 
+        display.clearDisplay(); 
+        display.setTextSize(1); 
+        display.setTextColor(WHITE); 
+        display.setCursor(0, 0); 
+        display.println("Thank you!"); 
+        display.display(); 
+        delay(2000); 
+        display.clearDisplay(); 
+      } 
+      else if (button2State == LOW) { 
+        // Dispense product 2 
+        servo2.write(0);
+        //update the stock
+        distance--;
+        display.clearDisplay();
+        display.setTextSize(1); 
+        display.setTextColor(WHITE); 
+        display.setCursor(0, 0); 
+        display.println("Dispensing " + product2); 
+        display.display(); 
+        delay(2000); 
+        display.clearDisplay(); 
+        display.setTextSize(1); 
+        display.setTextColor(WHITE); 
+        display.setCursor(0, 0); 
+        display.println("Thank you!"); 
+        display.display(); 
+        delay(2000); 
+        display.clearDisplay(); 
+      } 
+    } 
+    else { 
+      // Out of stock 
+      display.clearDisplay();
+      display.setTextSize(1); 
+      display.setTextColor(WHITE); 
+      display.setCursor(0, 0); 
+      display.println("Out of stock!"); 
+      display.display(); 
+      delay(2000); 
+      display.clearDisplay(); 
+    } 
+  } 
+  else { 
+    // Invalid coin 
+    display.clearDisplay();
+    display.setTextSize(1); 
+    display.setTextColor(WHITE); 
+    display.setCursor(0, 0); 
+    display.println("Invalid coin!"); 
+    display.display(); 
+    delay(2000); 
+    display.clearDisplay(); 
+  } 
+}
